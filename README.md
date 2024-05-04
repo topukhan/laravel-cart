@@ -6,7 +6,7 @@
 To get started with the project, follow these steps:
 
 Clone the repository to your local machine: 
-```git remote add origin https://github.com/topukhan/laravel-cart.git```
+```git clone https://github.com/topukhan/laravel-cart.git```
 
 Copy the `.env.example` file to `.env`:
 ```php artisan key:generate```

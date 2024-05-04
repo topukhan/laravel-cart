@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,12 +16,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('products.index');
 });
 
-Route::get('/cart', 'CartController@index')->name('cart.index');
-Route::post('/cart', 'CartController@add')->name('cart.add');
-Route::post('/cart/conditions', 'CartController@addCondition')->name('cart.addCondition');
-Route::delete('/cart/conditions', 'CartController@clearCartConditions')->name('cart.clearCartConditions');
-Route::get('/cart/details', 'CartController@details')->name('cart.details');
-Route::delete('/cart/{id}', 'CartController@delete')->name('cart.delete');
+
+Route::resource('products', ProductController::class);
+
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/conditions', [CartController::class, 'addCondition'])->name('cart.addCondition');
+Route::delete('/cart/conditions', [CartController::class, 'clearCartConditions'])->name('cart.clearCartConditions');
+Route::get('/cart/details', [CartController::class, 'details'])->name('cart.details');
+Route::delete('/cart/{id}', [CartController::class, 'delete'])->name('cart.delete');

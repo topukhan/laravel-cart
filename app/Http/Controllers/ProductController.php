@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
 class ProductController extends Controller
@@ -14,6 +15,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::all();
+        // dd($products);
         return view('products.index', compact('products'));
     }
 
@@ -31,7 +33,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',  
+            'title' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust max size to 2MB
             'color' => 'required',
             'size' => 'required',
@@ -84,17 +86,54 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Product $product)
     {
-        $product = Product::find($id);
-        $product->title = $request->input('title');
-        $product->image = $request->input('image');
-        $product->color = $request->input('color');
-        $product->size = $request->input('size');
-        $product->price = $request->input('price');
-        $product->save();
+        // Validate the request data
+        $request->validate([
+            'title' => 'required',
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust max size to 2MB
+            'color' => 'required',
+            'size' => 'required',
+            'price' => 'required|numeric',
+        ]);
+
+        // Update product fields if a new image is provided
+        if ($request->hasFile('image')) {
+            // Get the original file name with extension
+            $imageNameWithExtension = $request->file('image')->getClientOriginalName();
+
+            // Get just the file name
+            $imageName = pathinfo($imageNameWithExtension, PATHINFO_FILENAME);
+
+            // Generate a unique name for the image
+            $imageNameToStore = $imageName . '_' . time() . '.' . $request->file('image')->getClientOriginalExtension();
+
+            // Store the image in the public/images directory
+            $request->file('image')->storeAs('public/images', $imageNameToStore);
+
+            // Delete the old image file if it exists
+            if ($product->image) {
+                Storage::delete('public/images/' . $product->image);
+            }
+
+            // Update product with new image name
+            $product->update([
+                'image' => $imageNameToStore,
+            ]);
+        }
+
+        // Update other product fields
+        $product->update([
+            'title' => $request->title,
+            'color' => $request->color,
+            'size' => $request->size,
+            'price' => $request->price,
+        ]);
+
+        // Redirect back to products index page
         return redirect()->route('products.index');
     }
+
 
     /**
      * Remove the specified resource from storage.
